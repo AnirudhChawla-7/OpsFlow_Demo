@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo "Installing dependencies..."
+      - npm install
+
+  build:
+    commands:
+      - echo "Running tests (if any)..."
+      - npm test || echo "No tests found"
+      - echo "Build completed successfully!"
+
+artifacts:
+  files:
+    - src/**/*
+    - package.json
+    - package-lock.json

@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template for OpsFlow CI/CD Project
+
+Resources:
+  # S3 bucket for storing CodePipeline artifacts
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "opsflow-artifacts-977099008804-ap-south-1"
+
+  # IAM role for EC2 (so CodeDeploy can access app files)
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref EC2InstanceRole
+
+  # Security group to allow HTTP traffic
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP traffic
+      VpcId: vpc-0147c816117474b19   # ✅ Replace with your actual VPC ID from ap-south-1
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  # EC2 instance
+  AppEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0522ab6e1ddcc7055  # ✅ Amazon Linux 2 AMI (ap-south-1, Mumbai)
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      SecurityGroupIds:
+        - !Ref EC2SecurityGroup
+      KeyName: OpsFlow   # ✅ Updated with your key pair name
+      Tags:
+        - Key: Name
+          Value: OpsFlow-EC2
+
+Outputs:
+  EC2PublicIP:
+    Description: Public IP of the deployed EC2
+    Value: !GetAtt AppEC2Instance.PublicIp
+  ArtifactBucketName:
+    Description: S3 bucket for CodePipeline artifacts
+    Value: !Ref ArtifactBucket

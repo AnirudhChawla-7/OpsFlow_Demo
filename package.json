@@ -1,0 +1,33 @@
+{
+  "name": "opsflow-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "author": "Anirudh Chawla",
+  "license": "MIT",
+  "description": "OpsFlow Backend API - CI/CD Assignment App for AWS Deployment",
+  "keywords": [
+    "opsflow",
+    "backend",
+    "express",
+    "aws",
+    "cicd",
+    "terraform",
+    "nodejs"
+  ]
+}
