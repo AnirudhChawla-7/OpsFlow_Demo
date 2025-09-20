@@ -5,7 +5,7 @@ const PORT = process.env.PORT || 3000;
 
 // Default route
 app.get("/", (req, res) => {
-  res.json({ message: "Hello from OpsFlow Backend!" });
+  res.json({ message: "Hello from OpsFlow Backend v2!" });
 });
 
 // Health check endpoint
