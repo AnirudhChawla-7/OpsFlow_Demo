@@ -1,2 +1,3 @@
 #!/bin/bash
-pkill -f "node src/app.js"
+echo "Stopping OpsFlow app..."
+pkill -f "node src/server.js" || true
