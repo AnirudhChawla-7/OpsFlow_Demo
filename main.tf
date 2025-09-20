@@ -33,7 +33,13 @@ resource "aws_iam_role" "codepipeline_role" {
 
 resource "aws_iam_role_policy_attachment" "codepipeline_policy" {
   role       = aws_iam_role.codepipeline_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSCodePipelineFullAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
+}
+
+# CodePipeline needs CodeStar permission
+resource "aws_iam_role_policy_attachment" "codepipeline_codestar_policy" {
+  role       = aws_iam_role.codepipeline_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSCodeStarFullAccess"
 }
 
 # CodeBuild Role
@@ -75,7 +81,15 @@ resource "aws_iam_role_policy_attachment" "codedeploy_policy" {
 }
 
 # ------------------------------
-# 3. EC2 Instance + Security Group
+# 3. Key Pair (for EC2 SSH)
+# ------------------------------
+resource "aws_key_pair" "opsflow_key" {
+  key_name   = "opsflow-key"
+  public_key = file("C:/Users/Anirudh Chawla/.ssh/opsflow-key.pub")
+}
+
+# ------------------------------
+# 4. EC2 Instance + Security Group
 # ------------------------------
 resource "aws_security_group" "opsflow_sg" {
   name        = "opsflow-sg"
@@ -104,9 +118,9 @@ resource "aws_security_group" "opsflow_sg" {
 }
 
 resource "aws_instance" "opsflow_ec2" {
-  ami           = "ami-0ded8326293d3201b" # Ubuntu/AL2023 in ap-south-1
+  ami           = "ami-0ded8326293d3201b" # Amazon Linux 2023 in ap-south-1
   instance_type = "t2.micro"
-  key_name      = "opsflow-key"
+  key_name      = aws_key_pair.opsflow_key.key_name
 
   vpc_security_group_ids = [aws_security_group.opsflow_sg.id]
 
@@ -116,15 +130,15 @@ resource "aws_instance" "opsflow_ec2" {
 
   user_data = <<-EOF
               #!/bin/bash
-              apt-get update -y
-              apt-get install -y docker.io git
+              yum update -y
+              yum install -y docker git
               systemctl start docker
               systemctl enable docker
               EOF
 }
 
 # ------------------------------
-# 4. CodeBuild Project
+# 5. CodeBuild Project
 # ------------------------------
 resource "aws_codebuild_project" "opsflow_build" {
   name          = "OpsFlow-Build"
@@ -148,7 +162,7 @@ resource "aws_codebuild_project" "opsflow_build" {
 }
 
 # ------------------------------
-# 5. CodeDeploy App + Group
+# 6. CodeDeploy App + Group
 # ------------------------------
 resource "aws_codedeploy_app" "opsflow_app" {
   name             = "OpsFlow-App"
@@ -170,7 +184,7 @@ resource "aws_codedeploy_deployment_group" "opsflow_group" {
 }
 
 # ------------------------------
-# 6. CodePipeline (GitHub v2 via CodeStar Connection)
+# 7. CodePipeline (GitHub v2 via CodeStar Connection)
 # ------------------------------
 resource "aws_codepipeline" "opsflow_pipeline" {
   name     = "OpsFlow-Pipeline"
