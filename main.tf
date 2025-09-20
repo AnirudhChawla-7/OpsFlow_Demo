@@ -23,23 +23,44 @@ resource "aws_iam_role" "codepipeline_role" {
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = { Service = "codepipeline.amazonaws.com" }
-      Action   = "sts:AssumeRole"
-    }]
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "codepipeline.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
   })
 }
 
+# Attach AWS Managed Policies
 resource "aws_iam_role_policy_attachment" "codepipeline_policy" {
   role       = aws_iam_role.codepipeline_role.name
   policy_arn = "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
 }
 
-# CodePipeline needs CodeStar permission
-resource "aws_iam_role_policy_attachment" "codepipeline_codestar_policy" {
+resource "aws_iam_role_policy_attachment" "codepipeline_codestar_policy_attach" {
   role       = aws_iam_role.codepipeline_role.name
   policy_arn = "arn:aws:iam::aws:policy/AWSCodeStarFullAccess"
+}
+
+# Inline Policy for GitHub Connection
+resource "aws_iam_role_policy" "codepipeline_codestar_policy" {
+  name = "OpsFlow-CodePipeline-CodeStarPolicy"
+  role = aws_iam_role.codepipeline_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["codestar-connections:UseConnection"]
+        Resource = "arn:aws:codeconnections:ap-south-1:977099008804:connection/0a596167-5e51-4e4e-9a01-a8880a219810"
+      }
+    ]
+  })
 }
 
 # CodeBuild Role
@@ -48,11 +69,15 @@ resource "aws_iam_role" "codebuild_role" {
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = { Service = "codebuild.amazonaws.com" }
-      Action   = "sts:AssumeRole"
-    }]
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "codebuild.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
   })
 }
 
@@ -67,11 +92,15 @@ resource "aws_iam_role" "codedeploy_role" {
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = { Service = "codedeploy.amazonaws.com" }
-      Action   = "sts:AssumeRole"
-    }]
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "codedeploy.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
   })
 }
 
@@ -208,8 +237,8 @@ resource "aws_codepipeline" "opsflow_pipeline" {
 
       configuration = {
         ConnectionArn    = "arn:aws:codeconnections:ap-south-1:977099008804:connection/0a596167-5e51-4e4e-9a01-a8880a219810"
-        FullRepositoryId = "AnirudhChawla-7/OpsFlow_Demo"
-        BranchName       = "main"
+        FullRepositoryId = "AnirudhChawla-7/OpsFlow_Demo"   # ✅ exact repo name
+        BranchName       = "main"                          # ✅ branch name
       }
     }
   }
