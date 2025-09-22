@@ -2,12 +2,13 @@
 cd /home/ec2-user/OpsFlow
 echo "Installing Node.js and dependencies..."
 
-# Install Node.js if not installed
-if ! command -v node &> /dev/null
-then
-    curl -sL https://rpm.nodesource.com/setup_18.x | sudo bash -
-    sudo yum install -y nodejs
-fi
+# Install Node.js (always ensure)
+curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+sudo yum install -y nodejs
 
 # Install project dependencies
-npm install
+if [ -f package.json ]; then
+    npm install
+else
+    echo "No package.json found!"
+fi
