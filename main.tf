@@ -23,32 +23,29 @@ resource "aws_iam_role" "codepipeline_role" {
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "codepipeline.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
+    Statement = [{
+      Effect = "Allow"
+      Principal = { Service = "codepipeline.amazonaws.com" }
+      Action   = "sts:AssumeRole"
+    }]
   })
 }
 
-# Attach AWS Managed Policies
-resource "aws_iam_role_policy_attachment" "codepipeline_policy" {
+resource "aws_iam_role_policy_attachment" "codepipeline_pipeline_policy" {
   role       = aws_iam_role.codepipeline_role.name
   policy_arn = "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
 }
 
-resource "aws_iam_role_policy_attachment" "codepipeline_codestar_policy_attach" {
+resource "aws_iam_role_policy_attachment" "codepipeline_codestar_policy" {
   role       = aws_iam_role.codepipeline_role.name
   policy_arn = "arn:aws:iam::aws:policy/AWSCodeStarFullAccess"
 }
 
-# Inline Policy for GitHub Connection
-resource "aws_iam_role_policy" "codepipeline_codestar_policy" {
-  name = "OpsFlow-CodePipeline-CodeStarPolicy"
+data "aws_caller_identity" "current" {}
+
+# Inline Policy for CodePipeline
+resource "aws_iam_role_policy" "codepipeline_inline" {
+  name = "OpsFlow-CodePipeline-InlinePolicy"
   role = aws_iam_role.codepipeline_role.id
 
   policy = jsonencode({
@@ -58,59 +55,119 @@ resource "aws_iam_role_policy" "codepipeline_codestar_policy" {
         Effect   = "Allow"
         Action   = ["codestar-connections:UseConnection"]
         Resource = "arn:aws:codeconnections:ap-south-1:977099008804:connection/0a596167-5e51-4e4e-9a01-a8880a219810"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:GetObjectVersion", "s3:PutObject"]
+        Resource = "${aws_s3_bucket.artifact_bucket.arn}/*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = aws_s3_bucket.artifact_bucket.arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["codebuild:BatchGetBuilds", "codebuild:StartBuild"]
+        Resource = aws_codebuild_project.opsflow_build.arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = [
+          "codedeploy:CreateDeployment",
+          "codedeploy:GetApplication",
+          "codedeploy:GetDeployment",
+          "codedeploy:GetDeploymentGroup",
+          "codedeploy:RegisterApplicationRevision",
+          "codedeploy:GetDeploymentConfig"
+        ]
+        Resource = "*"
       }
     ]
   })
 }
 
+# ------------------------------
 # CodeBuild Role
+# ------------------------------
 resource "aws_iam_role" "codebuild_role" {
   name = "OpsFlow-CodeBuild-Role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = { Service = "codebuild.amazonaws.com" }
+      Action   = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "codebuild_dev_policy" {
+  role       = aws_iam_role.codebuild_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "codebuild_logs_policy" {
+  role       = aws_iam_role.codebuild_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+
+resource "aws_iam_role_policy" "codebuild_s3_access" {
+  name = "OpsFlow-CodeBuild-S3Access"
+  role = aws_iam_role.codebuild_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Principal = {
-          Service = "codebuild.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:GetObjectVersion", "s3:PutObject"]
+        Resource = "${aws_s3_bucket.artifact_bucket.arn}/*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = aws_s3_bucket.artifact_bucket.arn
       }
     ]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "codebuild_policy" {
-  role       = aws_iam_role.codebuild_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess"
-}
-
-# CodeDeploy Role
+# ------------------------------
+# CodeDeploy Role (FINAL FIX)
+# ------------------------------
 resource "aws_iam_role" "codedeploy_role" {
   name = "OpsFlow-CodeDeploy-Role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "codedeploy.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
+    Statement = [{
+      Effect = "Allow"
+      Principal = { Service = "codedeploy.amazonaws.com" }
+      Action   = "sts:AssumeRole"
+    }]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "codedeploy_policy" {
+# Attach Managed Policies
+resource "aws_iam_role_policy_attachment" "codedeploy_service_policy" {
   role       = aws_iam_role.codedeploy_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AWSCodeDeployFullAccess"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
+}
+
+resource "aws_iam_role_policy_attachment" "codedeploy_ec2_policy" {
+  role       = aws_iam_role.codedeploy_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "codedeploy_s3_policy" {
+  role       = aws_iam_role.codedeploy_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
 # ------------------------------
-# 3. Key Pair (for EC2 SSH)
+# 3. EC2 Key Pair
 # ------------------------------
 resource "aws_key_pair" "opsflow_key" {
   key_name   = "opsflow-key"
@@ -147,22 +204,28 @@ resource "aws_security_group" "opsflow_sg" {
 }
 
 resource "aws_instance" "opsflow_ec2" {
-  ami           = "ami-0ded8326293d3201b" # Amazon Linux 2023 in ap-south-1
+  ami           = "ami-0ded8326293d3201b"
   instance_type = "t2.micro"
   key_name      = aws_key_pair.opsflow_key.key_name
-
   vpc_security_group_ids = [aws_security_group.opsflow_sg.id]
 
   tags = {
     Name = "OpsFlow-EC2"
   }
 
+  # Install CodeDeploy Agent also
   user_data = <<-EOF
               #!/bin/bash
               yum update -y
-              yum install -y docker git
+              yum install -y docker git ruby wget
               systemctl start docker
               systemctl enable docker
+              cd /home/ec2-user
+              wget https://aws-codedeploy-ap-south-1.s3.ap-south-1.amazonaws.com/latest/install
+              chmod +x ./install
+              ./install auto
+              systemctl enable codedeploy-agent
+              systemctl start codedeploy-agent
               EOF
 }
 
@@ -199,9 +262,10 @@ resource "aws_codedeploy_app" "opsflow_app" {
 }
 
 resource "aws_codedeploy_deployment_group" "opsflow_group" {
-  app_name              = aws_codedeploy_app.opsflow_app.name
-  deployment_group_name = "OpsFlow-DeploymentGroup"
-  service_role_arn      = aws_iam_role.codedeploy_role.arn
+  app_name               = aws_codedeploy_app.opsflow_app.name
+  deployment_group_name  = "OpsFlow-DeploymentGroup"
+  service_role_arn       = aws_iam_role.codedeploy_role.arn
+  deployment_config_name = "CodeDeployDefault.AllAtOnce"
 
   ec2_tag_set {
     ec2_tag_filter {
@@ -213,7 +277,7 @@ resource "aws_codedeploy_deployment_group" "opsflow_group" {
 }
 
 # ------------------------------
-# 7. CodePipeline (GitHub v2 via CodeStar Connection)
+# 7. CodePipeline
 # ------------------------------
 resource "aws_codepipeline" "opsflow_pipeline" {
   name     = "OpsFlow-Pipeline"
@@ -226,7 +290,6 @@ resource "aws_codepipeline" "opsflow_pipeline" {
 
   stage {
     name = "Source"
-
     action {
       name             = "Source"
       category         = "Source"
@@ -237,15 +300,14 @@ resource "aws_codepipeline" "opsflow_pipeline" {
 
       configuration = {
         ConnectionArn    = "arn:aws:codeconnections:ap-south-1:977099008804:connection/0a596167-5e51-4e4e-9a01-a8880a219810"
-        FullRepositoryId = "AnirudhChawla-7/OpsFlow_Demo"   # ✅ exact repo name
-        BranchName       = "main"                          # ✅ branch name
+        FullRepositoryId = "AnirudhChawla-7/OpsFlow_Demo"
+        BranchName       = "main"
       }
     }
   }
 
   stage {
     name = "Build"
-
     action {
       name             = "Build"
       category         = "Build"
@@ -263,7 +325,6 @@ resource "aws_codepipeline" "opsflow_pipeline" {
 
   stage {
     name = "Deploy"
-
     action {
       name            = "Deploy"
       category        = "Deploy"
