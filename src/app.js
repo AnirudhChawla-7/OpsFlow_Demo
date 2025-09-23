@@ -8,7 +8,7 @@ app.use(express.json());
 
 // Default route
 app.get("/", (req, res) => {
-  res.json({ message: "Hello from CI/CD Assignment API!" });
+  res.json({ message: "Hello from OpsFLow" });
 });
 
 // Health check
