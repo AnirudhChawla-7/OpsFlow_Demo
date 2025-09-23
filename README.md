@@ -24,6 +24,6 @@ The project demonstrates **Infrastructure as Code (Terraform)** and **continuous
 ---
 
 ## 🏗️ Architecture
-
+(Architectural_Diagram_OpsFlow.png)
 ```text
 GitHub (Source) → CodePipeline → CodeBuild → S3 Artifacts → CodeDeploy → EC2 (OpsFlow App)
