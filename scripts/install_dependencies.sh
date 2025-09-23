@@ -1,20 +1,16 @@
 #!/bin/bash
 set -e
 cd /home/ec2-user/OpsFlow
-echo "Installing Node.js and dependencies..."
+echo "Installing Node.js and project dependencies..."
 
-# Install Node.js
-if ! command -v node &> /dev/null
-then
+# Install Node.js if not present
+if ! command -v node &> /dev/null; then
     curl -sL https://rpm.nodesource.com/setup_18.x | sudo bash -
     sudo yum install -y nodejs
 fi
 
-# npm check
-if ! command -v npm &> /dev/null
-then
-    sudo yum install -y npm
-fi
+# Ensure ec2-user owns the files (fix permission issue)
+sudo chown -R ec2-user:ec2-user /home/ec2-user/OpsFlow
 
-# Project dependencies install
-npm install --legacy-peer-deps || { echo "npm install failed"; exit 1; }
+# Install project dependencies as ec2-user
+npm install --legacy-peer-deps
