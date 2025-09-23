@@ -1,18 +1,20 @@
 #!/bin/bash
 set -e
 cd /home/ec2-user/OpsFlow
-echo "Installing Node.js and project dependencies..."
+echo "Installing Node.js and dependencies..."
 
-# Install Node.js if not present
-if ! command -v node &> /dev/null; then
+# Install Node.js
+if ! command -v node &> /dev/null
+then
     curl -sL https://rpm.nodesource.com/setup_18.x | sudo bash -
     sudo yum install -y nodejs
 fi
 
-# Install npm if missing
-if ! command -v npm &> /dev/null; then
+# npm check
+if ! command -v npm &> /dev/null
+then
     sudo yum install -y npm
 fi
 
-# Install project dependencies
-npm install --legacy-peer-deps
+# Project dependencies install
+npm install --legacy-peer-deps || { echo "npm install failed"; exit 1; }
