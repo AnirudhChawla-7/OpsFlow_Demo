@@ -1,9 +1,9 @@
 # 🚀 OpsFlow — CI/CD Pipeline on AWS
 
-OpsFlow is a **Node.js web application** deployed automatically using **AWS CodePipeline, CodeBuild, CodeDeploy, and EC2**.  
-The project demonstrates **Infrastructure as Code (Terraform)** and **continuous delivery of a Node.js app** from GitHub to an EC2 instance.
+OpsFlow is a **CI/CD Pipeline Project** deployed automatically using **AWS CodePipeline, CodeBuild, CodeDeploy, and EC2**.  
+The project demonstrates **Infrastructure as Code (Terraform)** and **continuous delivery of a Node.js backend** from GitHub to an EC2 instance.
 
----
+-------
 
 ## 📌 Features
 - Full **CI/CD pipeline** with AWS CodePipeline
@@ -14,7 +14,7 @@ The project demonstrates **Infrastructure as Code (Terraform)** and **continuous
   - CodeDeploy application & deployment group
   - EC2 instance with CodeDeploy agent
 - **AppSpec.yml + lifecycle hooks** to manage deployments
-- **Node.js app** deployment with scripts:
+- **Node.js Backend** deployment with scripts:
   - `install_dependencies.sh`
   - `start_server.sh`
   - `stop_server.sh`
