@@ -36,3 +36,13 @@
     transform: rotate(360deg);
   }
 }
+
+/* Added UI classes for the dashboard */
+.dashboard-shell { padding: 20px; font-family: Arial, sans-serif; }
+.dashboard-title { margin: 0 0 12px; }
+.section { margin: 20px 0; }
+.section-title { margin: 0 0 8px; font-size: 18px; }
+.health-text { margin: 0; }
+.muted-text { color: #6b7280; }
+.users-list-simple { list-style: none; margin: 0; padding: 0; }
+.users-list-item { padding: 6px 0; border-bottom: 1px solid #eee; }

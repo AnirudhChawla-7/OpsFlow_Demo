@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpsFlow Dashboard</title>
+    <link rel="stylesheet" href="/ui/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="header-bar">
+        <div class="brand">
+          <span class="brand-emoji" aria-hidden="true">🚀</span>
+          <h1 class="brand-title">OpsFlow Dashboard</h1>
+        </div>
+        <nav class="header-actions">
+          <a class="link" href="/" target="_blank" rel="noopener">API Root</a>
+          <a class="link" href="/health" target="_blank" rel="noopener">Health JSON</a>
+          <a class="link" href="/users" target="_blank" rel="noopener">Users JSON</a>
+        </nav>
+      </header>
+
+      <main class="content">
+        <section class="panel" id="health-panel">
+          <div class="panel-head">
+            <h2 class="panel-title">API Health</h2>
+            <span id="status-badge" class="status-badge status-badge--loading">Loading…</span>
+          </div>
+          <div class="panel-body">
+            <div class="stat-grid">
+              <div class="stat-item">
+                <div class="stat-label">Status</div>
+                <div id="health-status" class="stat-value muted">—</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Uptime</div>
+                <div id="health-uptime" class="stat-value muted">—</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="users-panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Users</h2>
+            <button id="refresh-users" class="button button--secondary" type="button">Refresh</button>
+          </div>
+          <div class="panel-body">
+            <ul id="users-list" class="users-list"></ul>
+            <div id="users-empty" class="empty-state hidden">No users found.</div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer-bar">
+        <div class="footer-content">
+          <span class="muted">© <span id="year"></span> OpsFlow</span>
+        </div>
+      </footer>
+    </div>
+
+    <script src="/ui/main.js" defer></script>
+  </body>
+</html>

@@ -1,42 +1,42 @@
 import React, { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
   const [health, setHealth] = useState(null);
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    // Call backend health API
-    fetch("http://<YOUR-EC2-PUBLIC-IP>:3000/health")
-      .then((res) => res.json())
-      .then((data) => setHealth(data));
-
-    // Call backend users API
-    fetch("http://<YOUR-EC2-PUBLIC-IP>:3000/users")
-      .then((res) => res.json())
-      .then((data) => setUsers(data));
+    fetch("/health").then((res) => res.json()).then((data) => setHealth(data));
+    fetch("/users").then((res) => res.json()).then((data) => setUsers(data));
   }, []);
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>🚀 OpsFlow Dashboard</h1>
+    <div className="dashboard-shell">
+      <h1 className="dashboard-title">🚀 OpsFlow Dashboard</h1>
 
-      <h2>API Health</h2>
-      {health ? (
-        <p>Status: {health.status} | Uptime: {Math.floor(health.uptime)}s</p>
-      ) : (
-        <p>Loading health...</p>
-      )}
+      <section className="section">
+        <h2 className="section-title">API Health</h2>
+        {health ? (
+          <p className="health-text">
+            Status: <strong>{health.status}</strong> | Uptime: {Math.floor(health.uptime)}s
+          </p>
+        ) : (
+          <p className="muted-text">Loading health…</p>
+        )}
+      </section>
 
-      <h2>Users</h2>
-      {users.length > 0 ? (
-        <ul>
-          {users.map((u) => (
-            <li key={u.id}>{u.name}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>No users found</p>
-      )}
+      <section className="section">
+        <h2 className="section-title">Users</h2>
+        {users.length > 0 ? (
+          <ul className="users-list-simple">
+            {users.map((u) => (
+              <li className="users-list-item" key={u.id}>{u.name}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="muted-text">No users found</p>
+        )}
+      </section>
     </div>
   );
 }
